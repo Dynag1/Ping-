@@ -19,9 +19,11 @@ from tkinter.messagebox import *
 ############################################################################################
 #####	Lancement des différentes alertes										       #####
 ############################################################################################
+
+
 def main(self, model):
+    mailRecap(model)
     while True:
-        print("Lancement")
         time.sleep(10)
         if int(var.delais) < 10:
             time.sleep(10)
@@ -49,10 +51,15 @@ def main(self, model):
                 break
         except Exception as inst:
             print(inst)
+
+
+def mailRecap(model):
+    print("lancement")
     if var.tourne is True:
-        if var.recap is True:
+        print("tourne OK")
+        if var.mailRecap is True:
             try:
-                threading.Thread(target=recapmail(), args=(model,)).start()
+                threading.Thread(target=thread_recap_mail.main, args=(model,)).start()
             except Exception as inst:
                 print(inst)
 
@@ -197,5 +204,7 @@ def telegram(model):
     except Exception as inst:
         print("fct_thread--" + str(inst))
 
+
 def recapmail(model):
-    recap.main(model)
+    print("lancement recap")
+    thread_recap_mail.main(model)

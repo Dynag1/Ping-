@@ -94,7 +94,6 @@ class MainWindow(QMainWindow):
 
     def menuPlugin(self, plugin):
         for plug in plugin:
-            print(plug)
             #self.ui.menuPlugin.addMenu(plug)
             action_directe = QAction(plug, self)
             action_directe.triggered.connect(lambda checked=False, p=plug: self.pluginLance(p))
@@ -119,7 +118,6 @@ class MainWindow(QMainWindow):
             variable = db.lire_param_db()
             var.delais = variable[0]
             var.envoie_alert = variable[1]
-            print(var.envoie_alert)
             var.popup = variable[2]
             var.mail = variable[3]
             var.telegram = variable[4]
@@ -148,44 +146,32 @@ class MainWindow(QMainWindow):
     def popup(self):
         if self.ui.checkPopup.isChecked():
             var.popup = True
-            print(var.popup)
         else:
             var.popup = False
-            print(var.popup)
 
     def mail(self):
         if self.ui.checkMail.isChecked():
             var.mail = True
-            print(var.mail)
         else:
             var.mail = False
-            print(var.mail)
 
     def telegram(self):
         if self.ui.checkTelegram.isChecked():
             var.telegram = True
-            print(var.telegram)
         else:
             var.telegram = False
-            print(var.telegram)
 
     def mailRecap(self):
         if self.ui.checkMailRecap.isChecked():
             var.mailRecap = True
-            print(var.mailRecap)
         else:
             var.mailRecap = False
-            print(var.mailRecap)
 
     def pingDb(self):
         if self.ui.checkDbExterne.isChecked():
             var.dbExterne = True
-            print(var.dbExterne)
         else:
             var.dbExterne = False
-            print(var.dbExterne)
-
-
 
     def close(self):
         var.tourne = False
@@ -306,11 +292,9 @@ class MainWindow(QMainWindow):
             valueA = str(valueA)+" h "+f"{int(valueB):02d}"
 
         self.ui.labDelaisH.setText(str(valueA))
-        print(f"Nouvelle valeur du délai : {var.delais}")
 
     def on_spin_spinHs_changed(self, value):
         var.nbrHs = value
-        print(f"Nouvelle valeur du var.nbrHs : {var.nbrHs}")
 
     def barProgress(self, i):
         self.ui.progressBar.setValue(i)
