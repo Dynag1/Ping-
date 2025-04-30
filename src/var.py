@@ -4,7 +4,8 @@
 #     pass
 version = "3.0.0"
 
-
+nom = "Ping ü"
+site = 'http://prog.dynag.co'
 
 thread_ouvert = 0
 thread_ferme = 0

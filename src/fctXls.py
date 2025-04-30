@@ -75,7 +75,7 @@ def saveExcel(self, tree_model):
                 str(comm) if comm else ""
             ])
 
-        workbook.save(filename=f"{name}.xlsx")
+        workbook.save(filename=f"{name}")
         QMessageBox.information(
             self,
             "Succès",

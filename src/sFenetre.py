@@ -14,27 +14,30 @@ from PySide6.QtWidgets import QMessageBox
 
 def fenetreParametre(self, comm):
     from src.ui_fenParamGene import Ui_Dialog
-    resutl = db.lire_param_gene()
+    try:
+        resutl = db.lire_param_gene()
+    except:
+        print("")
     dialog = QDialog()
     sfenetre = Ui_Dialog()
     sfenetre.setupUi(dialog)
-    print(resutl)
-    print(resutl[0])
-    titre = resutl[0]
-    code = li.generate_activation_code()
-    licence = resutl[1]
     try:
-        theme = resutl[2]
+        titre = resutl[0]
+        code = li.generate_activation_code()
+        licence = resutl[1]
+        try:
+            theme = resutl[2]
+        except:
+            theme = "light"
+        sfenetre.lineTitre.setText(titre)
+        sfenetre.lineCode.setText(code)
+        sfenetre.LineLicence.setText(licence)
+
+        options = ["light", "dark"]
+        sfenetre.comboTheme.addItems(options)
+        sfenetre.comboTheme.setCurrentText(theme)
     except:
-        theme = "light"
-
-    sfenetre.lineTitre.setText(titre)
-    sfenetre.lineCode.setText(code)
-    sfenetre.LineLicence.setText(licence)
-
-    options = ["light", "dark"]
-    sfenetre.comboTheme.addItems(options)
-    sfenetre.comboTheme.setCurrentText(theme)
+        print("")
 
     liActive = li.verify_license()
     if liActive:

@@ -1,11 +1,13 @@
 # This Python file uses the following encoding: utf-8
 import sys
 import os
-from PySide6.QtWidgets import QApplication, QMainWindow, QHeaderView, QAbstractItemView, QMessageBox, QMenu
+from PySide6.QtWidgets import QApplication, QMainWindow, QHeaderView
+from PySide6.QtWidgets import QAbstractItemView, QMessageBox, QMenu
 from PySide6.QtGui import QStandardItemModel, QStandardItem, QColor, QAction
 from PySide6.QtCore import QObject, Signal, Qt, QPoint, QModelIndex
 from src.ui_mainwindow import Ui_MainWindow
-from src import var, fct, lic, threadAjIp, threadLancement, db, sFenetre, fctXls
+from src import var, fct, lic, threadAjIp, threadLancement, db, sFenetre
+from src import fctXls, fctMaj
 from src.fcy_ping import PingManager
 import threading
 import qdarktheme
@@ -13,11 +15,11 @@ import webbrowser
 import importlib
 
 
-
 class Communicate(QObject):
     addRow = Signal(str, str, str, str, str, str, bool)
     progress = Signal(int)
     relaodWindow = Signal(bool)
+
 
 class MainWindow(QMainWindow):
     def closeEvent(self, event):
@@ -44,6 +46,11 @@ class MainWindow(QMainWindow):
         self.demarre()
 
     def demarre(self):
+        # fctMaj.main()
+        try:
+            fctMaj.main(self)
+        except Exception:
+            return
         self.ui.labVersion.setText("Ping ü version : "+var.version)
         if lic.verify_license():
             licActive = lic.jours_restants_licence()
@@ -71,6 +78,7 @@ class MainWindow(QMainWindow):
         self.ui.butIp.clicked.connect(self.butIpClic)
         self.ui.butStart.clicked.connect(self.butStart)
         self.ui.menuClose.triggered.connect(self.close)
+        self.ui.actionG_rer.triggered.connect(self.plugGerer)
         # Modele alertes
         self.ui.spinDelais.valueChanged.connect(self.on_spin_delais_changed)
         self.ui.spinHs.valueChanged.connect(self.on_spin_spinHs_changed)
@@ -92,26 +100,59 @@ class MainWindow(QMainWindow):
         self.ui.actionExporter_xls.triggered.connect(lambda: fctXls.saveExcel(self, self.treeIpModel))
         self.ui.actionImporter_xls.triggered.connect(lambda: fctXls.openExcel(self, self.treeIpModel))
 
+    """ *******************************
+        Plugin
+    ********************************"""
+
     def menuPlugin(self, plugin):
-        for plug in plugin:
-            #self.ui.menuPlugin.addMenu(plug)
-            action_directe = QAction(plug, self)
-            action_directe.triggered.connect(lambda checked=False, p=plug: self.pluginLance(p))
-            # Ajout direct de l'action dans le menu (PAS dans un sous-menu)
-            self.ui.menuPlugin.addAction(action_directe)
+        try:
+            for plug in plugin:
+                #self.ui.menuPlugin.addMenu(plug)
+                action_directe = QAction(plug, self)
+                action_directe.triggered.connect(lambda checked=False, p=plug: self.pluginLance(p))
+                # Ajout direct de l'action dans le menu (PAS dans un sous-menu)
+                self.ui.menuPlugin.addAction(action_directe)
+        except Exception as e:
+            QMessageBox.information(
+                self,
+                "Erreur",
+                str(e),
+                QMessageBox.Ok
+            )
 
     def pluginLance(self, plug):
+        path = os.path.abspath(os.getcwd())
         try:
-            # Construction du nom complet du module à importer
+            sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), ".")))  # Adaptez selon votre structure
+
             module_name = f"fichier.plugin.{plug}.main"
             plugin_module = importlib.import_module(module_name)
-            # Exemple d'utilisation : appel d'une fonction 'run' dans le module
             if hasattr(plugin_module, "main"):
-                plugin_module.main(self.comm)
+                plugin_module.main(self, self.comm)
             else:
                 print(f"Le plugin '{plug}' n'a pas de fonction 'run'.")
         except Exception as e:
-            print(f"Erreur lors du chargement du plugin '{plug}': {e}")
+            QMessageBox.information(
+                self,
+                "Erreur",
+                f"fichier.plugin.{plug}.main"+" - -"+str(e),
+                QMessageBox.Ok
+            )
+
+    def plugGerer(self):
+        try:
+            import os
+            import subprocess
+            path = os.path.abspath(os.getcwd())+"\\fichier\\plugin"
+            FILEBROWSER_PATH = os.path.join(os.getenv('WINDIR'), 'explorer.exe')
+            path = os.path.normpath(path)
+            if os.path.isdir(path):
+                subprocess.run([FILEBROWSER_PATH, path])
+            elif os.path.isfile(path):
+                subprocess.run([FILEBROWSER_PATH, '/select,', os.path.normpath(path)])
+        except Exception as e:
+            print(e)
+            print("design - " + str(e))
 
     def lireParamUi(self):
         try:

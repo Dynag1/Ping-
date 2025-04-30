@@ -100,10 +100,13 @@
             <string/>
            </property>
            <property name="pixmap">
-            <pixmap>src/img/logoP.png</pixmap>
+            <pixmap>img/logoP.png</pixmap>
            </property>
            <property name="scaledContents">
             <bool>true</bool>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignCenter</set>
            </property>
           </widget>
          </item>
