@@ -97,7 +97,7 @@
             </size>
            </property>
            <property name="text">
-            <string/>
+            <string notr="true"/>
            </property>
            <property name="pixmap">
             <pixmap>img/logoP.png</pixmap>
@@ -277,7 +277,7 @@
           <number>0</number>
          </property>
          <item row="0" column="0">
-          <widget class="QLabel" name="labVersion">
+          <widget class="QLabel" name="labVersion1">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -294,7 +294,7 @@
             <bool>false</bool>
            </property>
            <property name="text">
-            <string/>
+            <string>a</string>
            </property>
           </widget>
          </item>
@@ -737,10 +737,17 @@
     <property name="title">
      <string>Parametres</string>
     </property>
+    <widget class="QMenu" name="menuLangue">
+     <property name="title">
+      <string>Langue</string>
+     </property>
+    </widget>
     <addaction name="actionG_n_raux"/>
     <addaction name="actionEnvoies"/>
     <addaction name="actionMail_recap"/>
     <addaction name="actionBase_de_donn_e"/>
+    <addaction name="separator"/>
+    <addaction name="menuLangue"/>
    </widget>
    <widget class="QMenu" name="menuFonctions">
     <property name="title">
@@ -850,6 +857,11 @@
   <action name="actionG_rer">
    <property name="text">
     <string>Gérer</string>
+   </property>
+  </action>
+  <action name="actiondf">
+   <property name="text">
+    <string>df</string>
    </property>
   </action>
  </widget>

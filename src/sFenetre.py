@@ -1,5 +1,5 @@
 import sqlite3
-from src import var, db, li
+from src import var, db, lic
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 from PySide6.QtCore import Qt, QSortFilterProxyModel, Signal,QObject
 from PySide6.QtWidgets import QHeaderView, QDialog, QTimeEdit
@@ -23,7 +23,7 @@ def fenetreParametre(self, comm):
     sfenetre.setupUi(dialog)
     try:
         titre = resutl[0]
-        code = li.generate_activation_code()
+        code = lic.generate_activation_code()
         licence = resutl[1]
         try:
             theme = resutl[2]
@@ -39,12 +39,13 @@ def fenetreParametre(self, comm):
     except:
         print("")
 
-    liActive = li.verify_license()
+    liActive = lic.verify_license()
+    print(liActive)
     if liActive:
-        sfenetre.labLi.setText("Votre licence est active, il vous reste "
-                               + li.jours_restants_licence()+" jours")
+        sfenetre.labLi.setText(self.tr("Votre licence est active, il vous reste ")
+                               + lic.jours_restants_licence()+self.tr(" jours"))
     else:
-        sfenetre.labLi.setText("Vous n'avez pas de license valide")
+        sfenetre.labLi.setText(self.tr("Vous n'avez pas de license valide"))
 
     resultat = dialog.exec()
     #   result = self.ui.exec()

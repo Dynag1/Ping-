@@ -2,7 +2,7 @@
 
 # if __name__ == "__main__":
 #     pass
-version = "3.0.0"
+version = "99.00.01"
 
 nom = "Ping ü"
 site = 'http://prog.dynag.co'

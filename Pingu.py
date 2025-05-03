@@ -3,8 +3,8 @@ import sys
 import os
 from PySide6.QtWidgets import QApplication, QMainWindow, QHeaderView
 from PySide6.QtWidgets import QAbstractItemView, QMessageBox, QMenu
-from PySide6.QtGui import QStandardItemModel, QStandardItem, QColor, QAction
-from PySide6.QtCore import QObject, Signal, Qt, QPoint, QModelIndex
+from PySide6.QtGui import QStandardItemModel, QStandardItem, QColor, QAction, QActionGroup
+from PySide6.QtCore import QObject, Signal, Qt, QPoint, QModelIndex, QTranslator, QEvent, QCoreApplication, QLocale
 from src.ui_mainwindow import Ui_MainWindow
 from src import var, fct, lic, threadAjIp, threadLancement, db, sFenetre
 from src import fctXls, fctMaj
@@ -22,27 +22,33 @@ class Communicate(QObject):
 
 
 class MainWindow(QMainWindow):
+
+
+    def changeEvent(self, event):
+        if event.type() == QEvent.LanguageChange:
+            self.retranslateUi()
+        super().changeEvent(event)
+
     def closeEvent(self, event):
-        # self.ping_manager.stop()  # Ajoutez une méthode stop()
-        # self.ping_manager.deleteLater()
         os._exit(0)
         event.accept()
 
     def __init__(self):
+
         super().__init__()
+        self.translators = []
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.translator = QTranslator()
         try:
             theme = db.lire_param_gene()
             qdarktheme.setup_theme(theme[2])
         except:
             qdarktheme.setup_theme("dark")
-
-
+        self.create_language_menu()
         self.comm = Communicate()
-        self.comm.addRow.connect(self.on_add_row)
-        self.comm.progress.connect(self.barProgress)
-        self.comm.relaodWindow.connect(self.reload_main_window)
+        self.tree_view = self.ui.treeIp
+        self.load_language(QLocale().name()[:2])
         self.demarre()
 
     def demarre(self):
@@ -51,12 +57,6 @@ class MainWindow(QMainWindow):
             fctMaj.main(self)
         except Exception:
             return
-        self.ui.labVersion.setText("Ping ü version : "+var.version)
-        if lic.verify_license():
-            licActive = lic.jours_restants_licence()
-            self.ui.labLic.setText("Votre license est active pendant "+licActive+" jours")
-        else:
-            self.ui.labLic.setText("Vous n'avez pas de license active")
             self.ui.checkMail.setEnabled(False)
             self.ui.checkDbExterne.setEnabled(False)
             self.ui.checkTelegram.setEnabled(False)
@@ -69,9 +69,7 @@ class MainWindow(QMainWindow):
         self.tree_view = self.ui.treeIp
         self.treeIpHeader(self.tree_view)
         self.ui.txtIp.setText(fct.getIp(self))
-        self.ui.txtAlive.addItem("Alive")
-        self.ui.txtAlive.addItem("Tout")
-        self.ui.txtAlive.addItem("Site")
+
         self.lireParamUi()
 
     def connector(self):
@@ -99,6 +97,85 @@ class MainWindow(QMainWindow):
         # Fonction export excel
         self.ui.actionExporter_xls.triggered.connect(lambda: fctXls.saveExcel(self, self.treeIpModel))
         self.ui.actionImporter_xls.triggered.connect(lambda: fctXls.openExcel(self, self.treeIpModel))
+        self.comm.relaodWindow.connect(self.reload_main_window)
+        self.comm.addRow.connect(self.on_add_row)
+        self.comm.progress.connect(self.barProgress)
+
+
+    """********************
+        Traduction
+    ********************"""
+    def get_language_path(self):
+        if getattr(sys, 'frozen', False):
+            # Mode compilé : chemin dans le bundle
+            base_path = sys._MEIPASS
+        else:
+            # Mode développement : chemin relatif
+            base_path = os.path.dirname(__file__)
+
+        return os.path.join(base_path, 'src', 'languages')
+
+    # Utilisation dans votre code
+
+
+    def load_language(self, lang_code):
+        language_dir = self.get_language_path()
+        app = QApplication.instance()
+        if hasattr(self, 'translator') and self.translator is not None:
+            for translator in self.translators:
+                app.removeTranslator(translator)
+            self.translators.clear()
+        self.translator = QTranslator()
+        if self.translator.load(f"{self.get_language_path()}/app_{lang_code}.qm"):
+            app.installTranslator(self.translator)
+            self.translators.append(self.translator)
+        self.retranslateUi()
+
+
+    def retranslateUi(self):
+        # Réinitialise toute l'interface
+        _translate = QCoreApplication.translate
+        self.ui.retranslateUi(self)  # Si vous utilisez un UI chargé
+        self.langReload()
+
+    def create_language_menu(self):
+        lang_group = QActionGroup(self)
+        lang_group.triggered[QAction].connect(self.change_language)
+
+        lang_group.setExclusive(True)
+
+
+        self.ui.menuLangue.clear()
+        for lang_file in os.listdir(self.get_language_path()):
+            if lang_file.startswith("app_") and lang_file.endswith(".qm"):
+                lang_code = lang_file[4:-3]  # 'app_fr.qm' -> 'fr'
+                action = QAction(QLocale(lang_code).nativeLanguageName().capitalize(), self)
+                action.setData(lang_code)
+                action.setCheckable(True)
+                if lang_code == QLocale().name()[:2]:
+                    action.setChecked(True)
+                lang_group.addAction(action)
+                self.ui.menuLangue.addAction(action)
+
+    def change_language(self, action):
+        lang_code = action.data()
+        self.load_language(lang_code)
+        self.retranslateUi()
+
+    def langReload(self):
+        print("lang")
+        self.ui.labVersion1.setText(self.tr("Ping ü version : ")+var.version)
+        textLiNok = self.tr("Vous n'avez pas de license active")
+        if lic.verify_license():
+            licActive = lic.jours_restants_licence()
+            self.ui.labLic.setText(QCoreApplication.translate("MainWindow", "Votre license est active pendant ")+licActive+self.tr(" jours"))
+        else:
+            self.ui.labLic.setText(textLiNok)
+        self.treeIpHeader(self.tree_view)
+        self.ui.txtAlive.clear()
+        self.ui.txtAlive.addItem(self.tr("Alive"))
+        self.ui.txtAlive.addItem(self.tr("Tout"))
+        self.ui.txtAlive.addItem(self.tr("Site"))
 
     """ *******************************
         Plugin
@@ -221,26 +298,20 @@ class MainWindow(QMainWindow):
 
     def treeIpHeader(self, tree_view):
         self.tree_view = self.ui.treeIp
-        # Configurer le modèle pour le TreeView
         self.treeIpModel = QStandardItemModel()
-        self.treeIpModel.setHorizontalHeaderLabels(["Id", "IP", "Nom", "Mac", "Port", "Latence", "Suivi", "Comm", "Excl"])
-        # Appliquer le modèle au TreeView
+        self.treeIpModel.setHorizontalHeaderLabels([self.tr("Id"), self.tr("IP"), self.tr("Nom"), self.tr("Mac"), self.tr("Port"), self.tr("Latence"), self.tr("Suivi"), self.tr("Comm"), self.tr("Excl")])
         self.tree_view.setModel(self.treeIpModel)
-        # Configurer l'en-tête horizontal
         header = self.tree_view.header()
-        # Désactiver l'étirement automatique de la dernière section
         header.setStretchLastSection(False)
-        # Configurer les modes de redimensionnement pour chaque colonne
         for i in range(self.treeIpModel.columnCount()):
             if i in [0, 5, 6, 8]:  # Colonnes figées
                 header.setSectionResizeMode(i, QHeaderView.Fixed)
             else:  # Colonnes étirables
                 header.setSectionResizeMode(i, QHeaderView.Stretch)
-        # Configurer les largeurs initiales des colonnes figées
-        self.tree_view.setColumnWidth(0, 1)  # Exemple pour la colonne Id
-        self.tree_view.setColumnWidth(5, 50)  # Exemple pour Latence
-        self.tree_view.setColumnWidth(6, 50)  # Exemple pour Suivi
-        self.tree_view.setColumnWidth(8, 50)  # Exemple pour Excl
+        self.tree_view.setColumnWidth(0, 1)
+        self.tree_view.setColumnWidth(5, 50)
+        self.tree_view.setColumnWidth(6, 50)
+        self.tree_view.setColumnWidth(8, 50)
         self.tree_view.setStyleSheet("QTreeView, QTreeView::item { color: black; }")
         self.tree_view.setSelectionMode(QAbstractItemView.NoSelection)
 
@@ -254,9 +325,9 @@ class MainWindow(QMainWindow):
             return
 
         menu = QMenu()
-        action_web = QAction("Ouvrir dans le navigateur", self)
-        action_suppr = QAction("Supprimer", self)
-        action_excl = QAction("Exclure", self)
+        action_web = QAction(self.tr("Ouvrir dans le navigateur"), self)
+        action_suppr = QAction(self.tr("Supprimer"), self)
+        action_excl = QAction(self.tr("Exclure"), self)
         action_web.triggered.connect(lambda: self.handle_web_action(index))
         action_suppr.triggered.connect(lambda: self.find_and_remove(index))
         action_excl.triggered.connect(lambda: self.ipExcl(index))
@@ -266,8 +337,7 @@ class MainWindow(QMainWindow):
         menu.exec(self.tree_view.viewport().mapToGlobal(pos))
 
     def handle_web_action(self, index: QModelIndex):
-        # Accéder aux données via le modèle
-        ip_item = self.treeIpModel.item(index.row(), 1)  # Colonne IP
+        ip_item = self.treeIpModel.item(index.row(), 1)
         webbrowser.open('http://' + ip_item.text())
         print(f"Ouverture de {ip_item.text()}")
 
@@ -285,7 +355,7 @@ class MainWindow(QMainWindow):
         alive = self.ui.txtAlive.currentText()
         port = self.ui.txtPort.text()
         self.ui.progressBar.show()
-        threading.Thread(target=threadAjIp.main, args=(self.comm, self.treeIpModel, ip,nbr_hote, alive, port, "")).start()
+        threading.Thread(target=threadAjIp.main, args=(self, self.comm, self.treeIpModel, ip,nbr_hote, alive, port, "")).start()
 
     def on_add_row(self, i, ip, nom, mac, port, extra, is_ok):
         items = [
@@ -343,8 +413,8 @@ class MainWindow(QMainWindow):
             self.ui.progressBar.hide()
             QMessageBox.information(
                 self,
-                "Succès",
-                "Scan terminé, "+str(var.u)+" hôtes trouvés",
+                self.tr("Succès"),
+                self.tr("Scan terminé, ")+str(var.u)+self.tr(" hôtes trouvés"),
                 QMessageBox.Ok
             )
 
@@ -352,7 +422,6 @@ class MainWindow(QMainWindow):
         global window
         window.hide()
         window.deleteLater()
-        # Recréer la fenêtre
         window = MainWindow()
         window.show()
 

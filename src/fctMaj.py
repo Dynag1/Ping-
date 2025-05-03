@@ -106,7 +106,7 @@ def testVersion(self):
         print("nouvelle version")
         boite = QMessageBox(self)
         boite.setWindowTitle("Mise à jou")
-        boite.setText('Une mise à jour vers la version '+version+' est disponible. \n Voulez vous la télécharger ?')
+        boite.setText(self.tr('Une mise à jour vers la version ')+version+self.tr(' est disponible. \n Voulez vous la télécharger ?'))
 
         # Configuration des boutons
         boite.setStandardButtons(QMessageBox.Yes | QMessageBox.No)

@@ -12,9 +12,9 @@ name = ""
 def chSave(self):
     filename, _ = QFileDialog.getSaveFileName(
         parent=self,
-        caption="Enregistrer le fichier",
+        caption=self.tr("Enregistrer le fichier"),
         dir=os.getcwd() + os.sep + "bd",
-        filter="Fichiers XLS (*.xlsx);;Tous fichiers (*.*)"
+        filter=self.tr("Fichiers XLS (*.xlsx);;Tous fichiers (*.*)")
     )
 
     if not filename:
@@ -28,9 +28,9 @@ def chSave(self):
 def chOpen(self):
     filename, _ = QFileDialog.getOpenFileName(
         parent=self,
-        caption="Ouvrir un fichier",
+        caption=self.tr("Ouvrir un fichier"),
         dir=os.getcwd() + os.sep + "bd",
-        filter="Fichiers xlsx (*.xlsx);;Tous fichiers (*.*)"
+        filter=self.tr("Fichiers xlsx (*.xlsx);;Tous fichiers (*.*)")
     )
 
     if not filename:
@@ -46,7 +46,7 @@ def saveExcel(self, tree_model):
         workbook = Workbook()
         sheet = workbook.active
         # Entêtes
-        headers = ["IP", "Nom", "Mac", "Port", "Latence", "Comm"]
+        headers = [self.tr("IP"), self.tr("Nom"), self.tr("Mac"), self.tr("Port"), self.tr("Latence"), self.tr("Comm")]
         sheet.append(headers)
         # Parcourir le modèle
         for row in range(tree_model.rowCount()):
@@ -78,8 +78,8 @@ def saveExcel(self, tree_model):
         workbook.save(filename=f"{name}")
         QMessageBox.information(
             self,
-            "Succès",
-            "Données sauvegardés",
+            self.tr("Succès"),
+            self.tr("Données sauvegardés"),
             QMessageBox.Ok
         )
     except Exception as e:
@@ -125,8 +125,8 @@ def openExcel(self, tree_model):
                 tree_model.setData(tree_model.index(new_row, 7, parent), comm)
         QMessageBox.information(
             self,
-            "Succès",
-            "Données importés",
+            self.tr("Succès"),
+            self.tr("Données importés"),
             QMessageBox.Ok
         )
     except Exception as e:

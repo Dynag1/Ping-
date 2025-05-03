@@ -29,7 +29,7 @@ def worker(q, thread_no):
         #design.logs("fct_ping - " + str(e))
 
 
-def threadIp(comm, model, ip, tout, i, hote, port):
+def threadIp(self, comm, model, ip, tout, i, hote, port):
     # Vérifie si l'IP existe déjà dans le modèle
     var.u = 0
     ipexist = False
@@ -48,7 +48,7 @@ def threadIp(comm, model, ip, tout, i, hote, port):
         port_val = port
         extra = ""
         is_ok = (result == "OK")
-        if tout == "Tout":
+        if tout == self.tr("Tout"):
             if is_ok:
                 try:
                     nom = fct_ip.socket.gethostbyaddr(ip)[0]
@@ -67,7 +67,7 @@ def threadIp(comm, model, ip, tout, i, hote, port):
             # Ajoute la ligne via le signal
             comm.addRow.emit(i, ip, nom, mac, str(port_val), extra, is_ok)
             var.u += 1
-        elif tout == "Site":
+        elif tout == self.tr("Site"):
             comm.addRow.emit(i, ip, ip, "", "", "", False)
             var.u += 1
         else:
@@ -92,7 +92,7 @@ def threadIp(comm, model, ip, tout, i, hote, port):
 ###########################################################################################
 #####   Préparation de l'ajout      												  #####
 ###########################################################################################
-def main(comm, model,ip, hote, tout, port, mac):
+def main(self, comm, model,ip, hote, tout, port, mac):
     nbrworker = multiprocessing.cpu_count()
     num_worker_threads = nbrworker
     q = queue.Queue()
@@ -116,7 +116,7 @@ def main(comm, model,ip, hote, tout, port, mac):
         q.put(None)
     for t in threads:
         t.join()
-    if tout != "Site":
+    if tout != self.tr("Site"):
         ip1 = ip.split(".")
         u = 0
         i = 0
@@ -134,7 +134,7 @@ def main(comm, model,ip, hote, tout, port, mac):
                 ip2 = ip2 + str(ip4) + "." + str(u)
                 u = u + 1
             t = i
-            q.put(threading.Thread(target=threadIp, args=(comm, model,ip2, tout, i, hote, port)).start())
+            q.put(threading.Thread(target=threadIp, args=(self, comm, model,ip2, tout, i, hote, port)).start())
     else:
         ip2=ip
-        q.put(threading.Thread(target=threadIp, args=(comm, model,ip2, tout, i, hote, port)).start())
+        q.put(threading.Thread(target=threadIp, args=(self, comm, model,ip2, tout, i, hote, port)).start())

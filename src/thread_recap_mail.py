@@ -27,15 +27,15 @@ def jour_demande():
     return jourDemande
 
 
-def prepaMail(tree_model):
-    sujet = """\
-    Compte rendu du site """+var.nom_site
-    message = """\
+def prepaMail(self, tree_model):
+    sujet = self.tr("""\
+    Compte rendu du site """)+var.nom_site
+    message = self.tr("""\
         Bonjour,<br><br>
-        Voici le compte rendu des équipements sous surveillance : <br><br>"""
+        Voici le compte rendu des équipements sous surveillance : <br><br>""")
 
 
-    message = message + """<table border="1"><tr><th>Nom</th><th>IP</th><th>Statut</th></tr>"""
+    message = message + self.tr("""<table border="1"><tr><th>Nom</th><th>IP</th><th>Statut</th></tr>""")
     # Parcours du modèle
     for row in range(tree_model.rowCount()):
         index_nom = tree_model.index(row, 2)  # Colonne Nom
@@ -49,25 +49,25 @@ def prepaMail(tree_model):
         # Logique de coloration
         color = var.couleur_noir if statut == "HS" else var.couleur_vert
 
-        message += f"""
+        message += self.tr(f"""
         <tr>
             <td bgcolor="{color}">{nom}</td>
             <td bgcolor="{color}">{ip}</td>
             <td bgcolor="{color}">{statut}</td>
-        </tr>"""
+        </tr>""")
 
-    message = message + """\
+    message = message + self.tr("""\
     </table><br><br>
     Cordialement,<br><br>
     <b>PyngOuin<b>
-    """
+    """)
     try:
         thread_mail.envoie_mail(message, sujet)
     except Exception as inst:
         print(inst)
 
 
-def main(tree_model):
+def main(self, tree_model):
     data = db.lire_param_mail_recap()
     heureDemande = data[0].strftime("%H:%M")
     while True:
@@ -85,7 +85,7 @@ def main(tree_model):
                             if str(heure) == str(heureDemande):
                                 a = True
                     if a is True:
-                        prepaMail(tree_model)
+                        prepaMail(self, tree_model)
                     time.sleep(60)
                 else:
                     break
